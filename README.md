@@ -1,2 +1,2 @@
 # state-promulgator
-Javascript module for imperitive re-rendering of state dependents
+Javascript module for imperative re-rendering of state dependents
