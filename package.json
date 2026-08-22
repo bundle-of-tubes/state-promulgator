@@ -1,0 +1,29 @@
+{
+  "name": "@bundle-of-tubes/state-promulgator",
+  "version": "0.0.0",
+  "private": false,
+  "description": "A state object with a registry of callbacks to execute when state attributes are changed",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "component",
+    "state",
+    "register",
+    "registry"
+  ],
+  "homepage": "https://github.com/bundle-of-tubes/state-promulgator",
+  "license": "MIT",
+  "files": [],
+  "exports": [],
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bundle-of-tubes/state-promulgator"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
