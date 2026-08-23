@@ -1,23 +1,23 @@
 'use strict';
 
-interface StateObject {
+interface StringKeyedObject {
   [attr: string]: any;
 }
 type IntermediateValues = Map<symbol, any>;
-type UpdaterCallback = (newState: StateObject, oldState: StateObject, intermediateValues: IntermediateValues)=>any;
+type UpdaterCallback<StateType extends StringKeyedObject> = (newState: StateType, oldState: StateType, intermediateValues: IntermediateValues)=>any;
 
-class StatePromulgatorError extends Error {}
+export class StatePromulgatorError extends Error {}
 
 /** Encapsulation of a state object with callbacks to be executed when attributes of the state are changed */
-export default class StatePromulgator {
+export class StatePromulgator<StateType extends StringKeyedObject> {
   /** The state Object with string properties */
-  state: StateObject; //initilized in constructor
-  #updaterRegistry: Map<symbol, {callback: UpdaterCallback, triggeringStateProperties: Set<string>, intermediateDependencies: Set<symbol>}> = new Map();
+  state: StateType; //initilized in constructor
+  #updaterRegistry: Map<symbol, {callback: UpdaterCallback<StateType>, triggeringStateProperties: Set<keyof StateType>, intermediateDependencies: Set<symbol>}> = new Map<symbol, {callback: UpdaterCallback<StateType>, triggeringStateProperties: Set<keyof StateType>, intermediateDependencies: Set<symbol>}>();
 
   /**
    * @param initialState the initial value of the state object
    */
-  constructor(initialState: StateObject) {
+  constructor(initialState: StateType) {
     this.state = initialState;
   }
 
@@ -33,12 +33,12 @@ export default class StatePromulgator {
    * @param triggeringStateProperties The set of attributes of the state which when changed cause this callback to run
    * @param intermediateDependencies The set of keys of other intermediates that need to be computed before this
    */
-  registerCallback(callback: UpdaterCallback, triggeringStateProperties: Set<string>, intermediateDependencies: Set<symbol>): symbol {
+  registerCallback(callback: UpdaterCallback<StateType>, triggeringStateProperties: Iterable<keyof StateType>, intermediateDependencies: Iterable<symbol>): symbol {
     const key: unique symbol = Symbol();
     this.#updaterRegistry.set(key, {
       callback,
-      triggeringStateProperties,
-      intermediateDependencies
+      triggeringStateProperties: new Set<keyof StateType>(triggeringStateProperties),
+      intermediateDependencies: new Set<symbol>(intermediateDependencies)
     });
     return key;
   }
@@ -49,15 +49,16 @@ export default class StatePromulgator {
    * @param promulgateUnchangedProperties If true, callbacks will trigger for all properties of newState, even if they are identical to those of the old state
    * @throws {StatePromulgatorError} May throw an exception if callbacks are removed while this is running
    */
-  updateState(newState: StateObject, promulgateUnchangedProperties: boolean = false): undefined {
+  updateState(stateUpdates: Partial<StateType>, promulgateUnchangedProperties: boolean = false): undefined {
     // determine which attributes trigger callbacks
-    let relevantStateEntries = Object.entries(newState);
+    let relevantStateEntries = Object.entries(stateUpdates);
     if (!promulgateUnchangedProperties) {
-      relevantStateEntries = relevantStateEntries.filter(([attr, newVal]: [string, any]) => newVal !== this.state[attr]);
+      relevantStateEntries = relevantStateEntries.filter(([attr, newVal]: [keyof StateType, any]) => newVal !== this.state[attr]);
     }
-    const updatedAttributes: Set<string> = new Set(relevantStateEntries.map(([attr,]: [string, any]) => attr));
+    const updatedAttributes: Set<keyof StateType> = new Set<keyof StateType>(relevantStateEntries.map(([attr,]: [keyof StateType, any]) => attr));
+    const newState: StateType = Object.assign({}, this.state, stateUpdates);
     // collect keys of callbacks that are triggered by members of updatedAttributes
-    const relevantCallbacks: Set<symbol> = new Set();
+    const relevantCallbacks: Set<symbol> = new Set<symbol>();
     for (const [key, {triggeringStateProperties}] of this.#updaterRegistry.entries()) {
       if (!triggeringStateProperties.isDisjointFrom(updatedAttributes)) {
         relevantCallbacks.add(key);
@@ -74,12 +75,12 @@ export default class StatePromulgator {
       }
     }
     // Perform updates/intermediate calculations
-    const intermediateValues: Map<symbol, any> = new Map();
+    const intermediateValues: Map<symbol, any> = new Map<symbol, any>();
     for (const [key, {callback}] of this.#updaterRegistry.entries()) {
       if (relevantCallbacks.has(key)) {
         intermediateValues.set(key, callback(newState, this.state, intermediateValues));
       }
     }
-    Object.assign(this.state, newState);
+    this.state = newState;
   }
 }
