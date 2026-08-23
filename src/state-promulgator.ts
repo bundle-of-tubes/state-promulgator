@@ -15,7 +15,7 @@ export class StatePromulgator<StateType extends StringKeyedObject> {
   #updaterRegistry: Map<symbol, {callback: UpdaterCallback<StateType>, triggeringStateProperties: Set<keyof StateType>, intermediateDependencies: Set<symbol>}> = new Map<symbol, {callback: UpdaterCallback<StateType>, triggeringStateProperties: Set<keyof StateType>, intermediateDependencies: Set<symbol>}>();
 
   /**
-   * @param initialState the initial value of the state object
+   * @param initialState The initial value of the state object
    */
   constructor(initialState: StateType) {
     this.state = initialState;
