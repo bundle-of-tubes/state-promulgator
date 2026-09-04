@@ -8,6 +8,8 @@ This module exports two classes: `StatePromulgatorError` and `StatePromulgator`.
 
 Each instance of `StatePromulgator` has a state which is an object with string keys. It also has a registry of callbacks configured to execute when the state is updated.
 
+Usage examples can be found at https://github.com/bundle-of-tubes/promulgator-examples
+
 ### StatePromulgator Constructor
 #### Parameters
 * initialState: The initial value of the state object
