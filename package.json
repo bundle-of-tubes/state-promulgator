@@ -2,7 +2,7 @@
   "name": "@bundle-of-tubes/state-promulgator",
   "version": "0.0.1",
   "private": false,
-  "description": "A state object with a registry of callbacks to execute when state attributes are changed",
+  "description": "Observer Pattern with callbacks as subscribers",
   "keywords": [
     "javascript",
     "typescript",
